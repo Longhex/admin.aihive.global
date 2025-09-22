@@ -11,7 +11,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("AI_HIVE_POSTGRES_PRISMA_URL")
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model User {
@@ -21,7 +22,7 @@ model User {
   role     Role
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
-    failedAttempts  Int       @default(0) // Số lần đăng nhập sai
+  failedAttempts  Int       @default(0) // Số lần đăng nhập sai
   lockedUntil     DateTime? // Thời gian khóa tài khoản nếu quá nhiều lần đăng nhập sai
 
 }
