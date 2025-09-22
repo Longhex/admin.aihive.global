@@ -1,58 +1,64 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/contexts/auth-context"
-import { Eye, EyeOff } from "lucide-react"
-import styles from "@/styles/particles.module.css"
-import "@/styles/background-animation.css"
+import type React from "react";
+import "@/app/globals.css";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
+import { Eye, EyeOff } from "lucide-react";
+import styles from "@/styles/particles.module.css";
+import "@/styles/background-animation.css";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { login, isAuthenticated } = useAuth()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
 
   // Chỉ chuyển hướng khi trang được tải lần đầu và đã xác thực
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/")
+      router.push("/");
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const success = await login(email, password)
+      const success = await login(username, password);
       if (!success) {
-        setError("Email hoặc mật khẩu không chính xác")
+        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
       }
       // Không cần chuyển hướng ở đây, login() đã xử lý
     } catch (error) {
-      console.error("Login error:", error)
-      setError("Đã xảy ra lỗi khi đăng nhập")
+      console.error("Login error:", error);
+      setError("Đã xảy ra lỗi khi đăng nhập");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
       {/* Left side with video background */}
-      <div className="hidden lg:block lg:w-1/3 relative overflow-hidden">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+      <div className="hidden lg:block lg:w-2/3 relative overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
           <source
             src="https://cdn.dribbble.com/uploads/48292/original/30fd1f7b63806eff4db0d4276eb1ac45.mp4"
             type="video/mp4"
@@ -100,30 +106,40 @@ export default function LoginPage() {
                   />
                 </Link>
               </div>
-              <Button variant="ghost" className="text-gray-300 hover:text-white">
+              <Button
+                variant="ghost"
+                className="text-gray-300 hover:text-white"
+              >
                 Tiếng Việt (Việt Nam)
               </Button>
             </div>
-            <h2 className="text-2xl font-semibold mb-2 text-white">Xin chào, quản trị viên! 👋</h2>
+            <h2 className="text-2xl font-semibold mb-2 text-white">
+              Xin chào, quản trị viên! 👋
+            </h2>
             <p className="text-gray-400 mb-8">
-              Chào mừng các lãnh đạo đăng nhập vào Admin quản lý khách hàng của chatx
+              Chào mừng các lãnh đạo đăng nhập vào Admin quản lý khách hàng của
+              chatx
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Địa chỉ Email</label>
+                <label className="text-sm font-medium text-gray-300">
+                  Tên đăng nhập
+                </label>
                 <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-gray-800 text-white border-gray-700"
-                  placeholder="Nhập Email được cấp cho bạn"
+                  placeholder="Nhập tên đăng nhập được cấp cho bạn"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Mật khẩu</label>
+                <label className="text-sm font-medium text-gray-300">
+                  Mật khẩu
+                </label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -170,11 +186,12 @@ export default function LoginPage() {
               <a href="#" className="text-indigo-400 hover:underline">
                 Chính sách Bảo mật
               </a>{" "}
-              của ChatX và đồng ý nhận thông tin cập nhật, ưu đãi đặc biệt và email quảng cáo.
+              của ChatX và đồng ý nhận thông tin cập nhật, ưu đãi đặc biệt và
+              email quảng cáo.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,41 +1,53 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ChevronDown, MoreHorizontal, Plus } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import { ChevronDown, MoreHorizontal, Plus } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-  language: string
-  theme: string
-  timezone: string
-  last_login: string
-  last_login_ip: string
-  end_date: string
-  created_at: string
-  phone_number?: string
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  language: string;
+  theme: string;
+  timezone: string;
+  last_login: string;
+  last_login_ip: string;
+  end_date: string;
+  created_at: string;
+  phone_number?: string;
 }
 
 interface UsersTableProps {
-  users?: User[]
+  users?: User[];
 }
 
 export function UsersTable({ users = [] }: UsersTableProps) {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredUsers = users
     ? users.filter(
         (user) =>
           user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchQuery.toLowerCase()),
+          user.email.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : []
+    : [];
 
   return (
     <div className="space-y-4">
@@ -49,7 +61,11 @@ export function UsersTable({ users = [] }: UsersTableProps) {
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="ml-auto h-8 bg-transparent">
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto h-8 bg-transparent"
+              >
                 Columns <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -109,7 +125,9 @@ export function UsersTable({ users = [] }: UsersTableProps) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>View details</DropdownMenuItem>
                         <DropdownMenuItem>Edit user</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Delete user</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600">
+                          Delete user
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -131,5 +149,5 @@ export function UsersTable({ users = [] }: UsersTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

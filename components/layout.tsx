@@ -1,30 +1,40 @@
 "use client";
 
 import type React from "react";
-import { Bell, User } from "lucide-react";
+import { Bell, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/contexts/auth-context";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { EditSettingDialog } from "./edit-setting-dialog";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Use try/catch to handle the case when auth context is not available
-  const [logout, setLogout] = useState(() => {});
+  const { logout } = useAuth();
   const pathname = usePathname();
   const auth = useAuth();
-  const [authReady, setAuthReady] = useState(!!auth);
+  const authReady = !!auth;
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [isOpenSettingDialog, setIsOpenSettingDialog] = useState(false);
 
   useEffect(() => {
-    if (auth) {
-      setLogout(() => auth.logout);
-      setAuthReady(true);
-    } else {
-      console.warn("Auth context not available");
-      setAuthReady(false);
+    if (typeof window !== "undefined") {
+      const cookies = document.cookie.split(";").map((c) => c.trim());
+      const roleCookie = cookies.find((c) => c.startsWith("systemUserRole="));
+      if (roleCookie) {
+        setUserRole(decodeURIComponent(roleCookie.split("=")[1]));
+      } else {
+        // Nếu chưa có cookie, thử lấy từ localStorage (dự phòng)
+        const localRole = localStorage.getItem("systemUserRole");
+        if (localRole) setUserRole(localRole);
+      }
+      // Get username from localStorage
+      const localUsername = localStorage.getItem("systemUserName");
+      if (localUsername) setUsername(localUsername);
     }
-  }, [auth]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -63,45 +73,72 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 >
                   User List
                 </Link>
-                <Link
-                  href="/user"
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-                    pathname === "/user"
-                      ? "bg-white text-black shadow-md transform scale-105"
-                      : "text-gray-300 hover:text-white hover:bg-gray-800"
-                  }`}
-                >
-                  System User
-                </Link>
+                {/* Only show System User tab for SuperAdmin */}
+                {userRole === "SuperAdmin" && (
+                  <Link
+                    href="/system-user"
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                      pathname === "/system-user"
+                        ? "bg-white text-black shadow-md transform scale-105"
+                        : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    }`}
+                  >
+                    System User
+                  </Link>
+                )}
               </div>
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-full"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
-            </Button>
+            <div>
+              {userRole === "SuperAdmin" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpenSettingDialog(true)}
+                  className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-full"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-full"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+              </Button>
+            </div>
             <div className="flex items-center gap-2 bg-gray-900 rounded-full p-1 pl-3">
-              <span className="text-sm text-gray-300">admin@chatx.vn</span>
+              <span className="text-sm text-gray-300">{username || "-"}</span>
               <Button
                 variant="ghost"
                 size="icon"
                 className="rounded-full bg-gray-800"
-                onClick={logout}
+                // onClick={logout}
                 disabled={!authReady}
               >
                 <User className="h-5 w-5" />
                 <span className="sr-only">Profile</span>
               </Button>
             </div>
+            {authReady && (
+              <Button
+                variant="destructive"
+                className="text-xs px-4 py-1 border border-red-500 bg-red-600 hover:bg-red-700 hover:text-white"
+                onClick={logout}
+              >
+                Logout
+              </Button>
+            )}
           </div>
         </div>
       </header>
       <main className="container mx-auto px-6 py-8">{children}</main>
+      {isOpenSettingDialog && (
+        <EditSettingDialog onClose={() => setIsOpenSettingDialog(false)} />
+      )}
     </div>
   );
 }

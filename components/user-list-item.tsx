@@ -9,7 +9,13 @@ import { UserDetailsDialog } from "./user-details-dialog";
 import { formatDate } from "@/lib/utils";
 import { EditDateDialog } from "./edit-date-dialog";
 
-export function UserListItem({ user }: { user: User }) {
+export function UserListItem({
+  user,
+  currentUserRole = "",
+}: {
+  user: User;
+  currentUserRole?: string;
+}) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
 
@@ -19,12 +25,10 @@ export function UserListItem({ user }: { user: User }) {
     if (!confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
 
     try {
-      await fetch(`https://cloud.oriagent.com/console/api/account/remove`, {
+      await fetch(`api/account/remove`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZjI2YjRhMTAtNDk2Mi00MGM0LTkyODktNmVmMmNlNjI3OWZlIiwiZXhwIjoxNzU5NDc1MDQzLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.HtmVsL6Sts0CkRRRMsCmuoitC3Wqr0Eh5Vn7b-Gcizc",
         },
         body: JSON.stringify({
           user_id: user.id,
@@ -40,33 +44,45 @@ export function UserListItem({ user }: { user: User }) {
   return (
     <Card className="mb-4 border border-gray-200">
       <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 space-y-4 sm:space-y-0 bg-white text-gray-800 rounded-[5px]">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full">
           <div>
-            <h3 className="font-semibold">{user.username}</h3>
-            <p className="text-sm text-gray-600">ID: {user.id}</p>
+            <h3 className="font-semibold">{user.name}</h3>
+            <p className="text-sm text-gray-600">{user.email}</p>
           </div>
           <div>
             <p className="text-sm font-medium">Role: {user.role}</p>
+            <p className="text-sm text-gray-600">Language: {user.language}</p>
+          </div>
+          <div>
+            <p className="text-sm">Theme: {user.theme}</p>
+            <p className="text-sm">Timezone: {user.timezone}</p>
+          </div>
+          <div>
+            <p className="text-sm">Phone: {user.phone_number || "N/A"}</p>
+            <p className="text-sm">Last Login IP: {user.last_login_ip}</p>
           </div>
           <div>
             <p className="text-sm">
-              Created: {user.createdAt ? formatDate(user.createdAt) : "-"}
+              Last Login: {new Date(user.last_login).toLocaleString()}
             </p>
-            <p className="text-sm">
-              Updated: {user.updatedAt ? formatDate(user.updatedAt) : "-"}
-            </p>
+            <p className="text-sm">End Date: {user.end_date}</p>
+          </div>
+          <div>
+            <p className="text-sm">Created: {formatDate(user.created_at)}</p>
           </div>
         </div>
         <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="focus:ring-0"
-            onClick={() => setIsDetailsOpen(true)}
-          >
-            <MoreHorizontal className="h-5 w-5" />
-            <span className="sr-only">View user details</span>
-          </Button>
+          {currentUserRole !== "Viewer" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="focus:ring-0"
+              onClick={() => setIsDetailsOpen(true)}
+            >
+              <MoreHorizontal className="h-5 w-5" />
+              <span className="sr-only">View user details</span>
+            </Button>
+          )}
         </div>
       </CardContent>
       <UserDetailsDialog
