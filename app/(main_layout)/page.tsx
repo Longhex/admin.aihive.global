@@ -36,13 +36,7 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/users", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        });
+        const res = await fetch("/api/users");
 
         if (!res.ok) {
           const errorText = await res.text();

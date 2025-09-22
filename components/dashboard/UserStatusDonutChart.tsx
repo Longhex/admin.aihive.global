@@ -1,96 +1,113 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
-import { isBefore, parseISO } from "date-fns"
-import { ArrowUpRight } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from "recharts";
+import { isBefore, parseISO } from "date-fns";
+import { ArrowUpRight } from "lucide-react";
 
 interface UserData {
-  id: string
-  end_date?: string
+  id: string;
+  end_date?: string;
 }
 
 interface ChartData {
-  name: string
-  value: number
-  color: string
+  name: string;
+  value: number;
+  color: string;
 }
 
 export function UserStatusDonutChart() {
-  const [chartData, setChartData] = useState<ChartData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const response = await fetch("/api/users", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        })
+        });
 
         if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(`API request failed with status ${response.status}: ${errorText}`)
+          const errorText = await response.text();
+          throw new Error(
+            `API request failed with status ${response.status}: ${errorText}`
+          );
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (!data || !Array.isArray(data.data)) {
-          throw new Error("Invalid data format received from API")
+          throw new Error("Invalid data format received from API");
         }
 
-        const users: UserData[] = data.data
+        const users: UserData[] = data.data;
 
         // Calculate active and expired users
-        const currentDate = new Date()
+        const currentDate = new Date();
         const expiredUsers = users.filter((user) => {
-          if (!user.end_date) return false
+          if (!user.end_date) return false;
           try {
-            const endDate = parseISO(user.end_date)
-            return isBefore(endDate, currentDate)
+            const endDate = parseISO(user.end_date);
+            return isBefore(endDate, currentDate);
           } catch (err) {
-            console.warn("Error parsing end date:", err)
-            return false
+            console.warn("Error parsing end date:", err);
+            return false;
           }
-        }).length
+        }).length;
 
-        const activeUsers = users.length - expiredUsers
+        const activeUsers = users.length - expiredUsers;
 
         // Prepare chart data
         const chartData: ChartData[] = [
           { name: "Active Users", value: activeUsers, color: "#a78bfa" }, // Purple
           { name: "Expired Accounts", value: expiredUsers, color: "#fcd34d" }, // Yellow
-        ]
+        ];
 
-        setChartData(chartData)
+        setChartData(chartData);
       } catch (err) {
-        console.error("Error fetching user data:", err)
-        setError(err instanceof Error ? err.message : "An unknown error occurred")
+        console.error("Error fetching user data:", err);
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
 
         // Set fallback data
         setChartData([
           { name: "Active Users", value: 5, color: "#a78bfa" },
           { name: "Expired Accounts", value: 2, color: "#fcd34d" },
-        ])
+        ]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }: any) => {
-    const RADIAN = Math.PI / 180
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
-    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+    name,
+    value,
+  }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
       <text
@@ -104,14 +121,16 @@ export function UserStatusDonutChart() {
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
-    )
-  }
+    );
+  };
 
   return (
     <Card className="bg-gray-900 border-gray-800 rounded-xl overflow-hidden">
       <CardHeader className="border-b border-gray-800 p-6">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base font-normal text-white">User Status Distribution</CardTitle>
+          <CardTitle className="text-base font-normal text-white">
+            User Status Distribution
+          </CardTitle>
           <div className="flex items-center text-xs font-medium rounded-full px-2 py-1 bg-purple-900/50 text-purple-400">
             <ArrowUpRight className="h-3 w-3 mr-1" />
             +12.5%
@@ -122,7 +141,9 @@ export function UserStatusDonutChart() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            <p className="mt-4 text-gray-400 text-lg">Loading user status data...</p>
+            <p className="mt-4 text-gray-400 text-lg">
+              Loading user status data...
+            </p>
           </div>
         ) : error ? (
           <div className="text-red-400 p-4 bg-red-900/20 rounded-md mb-4">
@@ -163,11 +184,13 @@ export function UserStatusDonutChart() {
               layout="horizontal"
               verticalAlign="bottom"
               align="center"
-              formatter={(value, entry, index) => <span style={{ color: "white" }}>{value}</span>}
+              formatter={(value, entry, index) => (
+                <span style={{ color: "white" }}>{value}</span>
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

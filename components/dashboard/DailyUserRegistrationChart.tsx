@@ -1,19 +1,32 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 
 interface UserData {
-  id: string
-  created_at: string
+  id: string;
+  created_at: string;
 }
 
 interface ChartData {
-  day: string
-  count: number
+  day: string;
+  count: number;
 }
 
 const monthNames = [
@@ -29,104 +42,127 @@ const monthNames = [
   "October",
   "November",
   "December",
-]
+];
 
 export function DailyUserRegistrationChart() {
-  const [chartData, setChartData] = useState<ChartData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString())
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    new Date().getMonth().toString()
+  );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString()
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         const response = await fetch("/api/users", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        })
+        });
 
         if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(`API request failed with status ${response.status}: ${errorText}`)
+          const errorText = await response.text();
+          throw new Error(
+            `API request failed with status ${response.status}: ${errorText}`
+          );
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (!data || !Array.isArray(data.data)) {
-          throw new Error("Invalid data format received from API")
+          throw new Error("Invalid data format received from API");
         }
 
-        const users: UserData[] = data.data
+        const users: UserData[] = data.data;
 
         const filteredUsers = users.filter((user) => {
           try {
-            const timestamp = Number.parseInt(user.created_at)
+            const timestamp = Number.parseInt(user.created_at);
             if (isNaN(timestamp)) {
-              console.warn("Invalid timestamp:", user.created_at)
-              return false
+              console.warn("Invalid timestamp:", user.created_at);
+              return false;
             }
 
-            const date = new Date(timestamp * 1000)
-            return date.getFullYear().toString() === selectedYear && date.getMonth().toString() === selectedMonth
+            const date = new Date(timestamp * 1000);
+            return (
+              date.getFullYear().toString() === selectedYear &&
+              date.getMonth().toString() === selectedMonth
+            );
           } catch (err) {
-            console.warn("Error parsing date:", err)
-            return false
+            console.warn("Error parsing date:", err);
+            return false;
           }
-        })
+        });
 
-        const usersByDay: { [key: string]: number } = {}
+        const usersByDay: { [key: string]: number } = {};
 
         filteredUsers.forEach((user) => {
           try {
-            const timestamp = Number.parseInt(user.created_at)
-            if (isNaN(timestamp)) return
+            const timestamp = Number.parseInt(user.created_at);
+            if (isNaN(timestamp)) return;
 
-            const date = new Date(timestamp * 1000)
-            const day = date.getDate().toString().padStart(2, "0")
-            usersByDay[day] = (usersByDay[day] || 0) + 1
+            const date = new Date(timestamp * 1000);
+            const day = date.getDate().toString().padStart(2, "0");
+            usersByDay[day] = (usersByDay[day] || 0) + 1;
           } catch (err) {
-            console.warn("Error processing user:", err)
+            console.warn("Error processing user:", err);
           }
-        })
+        });
 
-        const daysInMonth = new Date(Number.parseInt(selectedYear), Number.parseInt(selectedMonth) + 1, 0).getDate()
-        const chartData: ChartData[] = Array.from({ length: daysInMonth }, (_, i) => {
-          const day = (i + 1).toString().padStart(2, "0")
-          return { day, count: usersByDay[day] || 0 }
-        })
+        const daysInMonth = new Date(
+          Number.parseInt(selectedYear),
+          Number.parseInt(selectedMonth) + 1,
+          0
+        ).getDate();
+        const chartData: ChartData[] = Array.from(
+          { length: daysInMonth },
+          (_, i) => {
+            const day = (i + 1).toString().padStart(2, "0");
+            return { day, count: usersByDay[day] || 0 };
+          }
+        );
 
-        setChartData(chartData)
+        setChartData(chartData);
       } catch (err) {
-        console.error("Error fetching user data:", err)
-        setError(err instanceof Error ? err.message : "An unknown error occurred")
+        console.error("Error fetching user data:", err);
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
 
         // Create empty chart data as fallback
-        const daysInMonth = new Date(Number.parseInt(selectedYear), Number.parseInt(selectedMonth) + 1, 0).getDate()
-        const emptyChartData: ChartData[] = Array.from({ length: daysInMonth }, (_, i) => {
-          const day = (i + 1).toString().padStart(2, "0")
-          return { day, count: 0 }
-        })
-        setChartData(emptyChartData)
+        const daysInMonth = new Date(
+          Number.parseInt(selectedYear),
+          Number.parseInt(selectedMonth) + 1,
+          0
+        ).getDate();
+        const emptyChartData: ChartData[] = Array.from(
+          { length: daysInMonth },
+          (_, i) => {
+            const day = (i + 1).toString().padStart(2, "0");
+            return { day, count: 0 };
+          }
+        );
+        setChartData(emptyChartData);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [selectedMonth, selectedYear])
+    fetchData();
+  }, [selectedMonth, selectedYear]);
 
   return (
     <Card className="bg-gray-900 border-gray-800 rounded-xl overflow-hidden">
       <CardHeader className="border-b border-gray-800 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <CardTitle className="text-base font-normal text-white">Daily User Registration</CardTitle>
+          <CardTitle className="text-base font-normal text-white">
+            Daily User Registration
+          </CardTitle>
           <div className="flex space-x-2">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger className="w-[120px] bg-gray-800 text-white border-gray-700">
@@ -134,7 +170,11 @@ export function DailyUserRegistrationChart() {
               </SelectTrigger>
               <SelectContent className="bg-gray-800 text-white border-gray-700">
                 {monthNames.map((month, index) => (
-                  <SelectItem key={index} value={index.toString()} className="hover:bg-gray-700">
+                  <SelectItem
+                    key={index}
+                    value={index.toString()}
+                    className="hover:bg-gray-700"
+                  >
                     {month}
                   </SelectItem>
                 ))}
@@ -146,7 +186,11 @@ export function DailyUserRegistrationChart() {
               </SelectTrigger>
               <SelectContent className="bg-gray-800 text-white border-gray-700">
                 {["2024", "2025", "2026"].map((year) => (
-                  <SelectItem key={year} value={year} className="hover:bg-gray-700">
+                  <SelectItem
+                    key={year}
+                    value={year}
+                    className="hover:bg-gray-700"
+                  >
                     {year}
                   </SelectItem>
                 ))}
@@ -159,7 +203,9 @@ export function DailyUserRegistrationChart() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            <p className="mt-4 text-gray-400 text-lg">Loading daily registration data...</p>
+            <p className="mt-4 text-gray-400 text-lg">
+              Loading daily registration data...
+            </p>
           </div>
         ) : error ? (
           <div className="text-red-400 p-4 bg-red-900/20 rounded-md">
@@ -178,7 +224,10 @@ export function DailyUserRegistrationChart() {
             className="w-full h-[400px]"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 30, right: 30, left: 20, bottom: 5 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 30, right: 30, left: 20, bottom: 5 }}
+              >
                 <XAxis dataKey="day" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
                 <ChartTooltip
@@ -189,9 +238,9 @@ export function DailyUserRegistrationChart() {
                           <p className="text-white">{`Day: ${payload[0].payload.day}`}</p>
                           <p className="text-white">{`New Users: ${payload[0].value}`}</p>
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
                 <Bar dataKey="count" fill="#a78bfa" radius={[4, 4, 0, 0]}>
@@ -203,5 +252,5 @@ export function DailyUserRegistrationChart() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
