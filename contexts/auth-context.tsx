@@ -1,9 +1,9 @@
 "use client";
 
-import type React from "react";
-import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,19 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check authentication cookie when component is mounted
-    const authStatus = Cookies.get("systemUserAuth");
-    setIsAuthenticated(authStatus === "true");
-    // Chỉ redirect nếu chưa đăng nhập, không phải trang /login, và KHÔNG phải đang gọi API (không phải môi trường server)
-    // Đặc biệt: KHÔNG redirect nếu đang ở trang /system-user hoặc các trang admin khác khi đang thao tác nội bộ
-    if (
-      typeof window !== "undefined" &&
-      authStatus !== "true" &&
-      window.location.pathname !== "/login" &&
-      window.location.pathname !== "/system-user"
-    ) {
-      router.push("/login");
-    }
+    const handle = async () => {
+      try {
+        const res = await axios.get("/api/auth/me");
+        setIsAuthenticated(true);
+        localStorage.setItem("systemUserRole", res?.data?.role || "");
+        localStorage.setItem("systemUserName", res?.data?.username || "");
+      } catch (error) {
+        router.push("/login");
+      }
+    };
+    handle();
   }, [router]);
 
   const login = async (
@@ -45,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ): Promise<boolean> => {
     try {
-      const res = await fetch("/api/system-users/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -53,12 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         return false;
       }
-      // Cookie is set by the API route (httpOnly)
-      Cookies.set("systemUserAuth", "true", {
-        expires: 7,
-        path: "/",
-        sameSite: "strict",
-      });
+
       // Lưu role vào localStorage để client-side layout có thể đọc
       if (typeof window !== "undefined") {
         const resJson = await res.json();
@@ -77,9 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     // Gọi API để xóa cookie httpOnly phía server (nếu cần)
-    await fetch("/api/system-users/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST" });
     // Xóa cookie phía client (dự phòng)
-    Cookies.remove("systemUserAuth", { path: "/" });
     setIsAuthenticated(false);
     router.push("/login");
   };

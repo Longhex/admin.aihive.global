@@ -38,3 +38,11 @@ model Setting {
   id           Int     @id @default(autoincrement())
   oriagentToken String? @unique
 }
+
+
+model CacheData {
+  id        Int      @id @default(autoincrement())
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { DateTime } from "luxon";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; // lưu trong env file
 
 export async function POST(req: Request) {
   try {
@@ -66,16 +69,27 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
+
+    // ✅ Login thành công → tạo JWT
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
     // Set a cookie for authentication (simple, not JWT for now)
     const response = NextResponse.json({
       data: { id: user.id, username: user.username, role: user.role },
     });
-    response.cookies.set("systemUserAuth", "true", {
+
+    response.cookies.set("authToken", token, {
       httpOnly: true,
       sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7, // 7 ngày
     });
+
     response.cookies.set("systemUserId", String(user.id), {
       httpOnly: true,
       sameSite: "strict",

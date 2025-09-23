@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { isBefore, parseISO } from "date-fns";
 import { ArrowUpRight } from "lucide-react";
+import axios from "axios";
 
 interface UserData {
   id: string;
@@ -33,47 +34,12 @@ export function UserStatusDonutChart() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/users", {
-          method: "GET",
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `API request failed with status ${response.status}: ${errorText}`
-          );
-        }
-
-        const data = await response.json();
-
+        const res = await axios.get("/api/users/stats/status-donut");
+        const data = res.data;
         if (!data || !Array.isArray(data.data)) {
           throw new Error("Invalid data format received from API");
         }
-
-        const users: UserData[] = data.data;
-
-        // Calculate active and expired users
-        const currentDate = new Date();
-        const expiredUsers = users.filter((user) => {
-          if (!user.end_date) return false;
-          try {
-            const endDate = parseISO(user.end_date);
-            return isBefore(endDate, currentDate);
-          } catch (err) {
-            console.warn("Error parsing end date:", err);
-            return false;
-          }
-        }).length;
-
-        const activeUsers = users.length - expiredUsers;
-
-        // Prepare chart data
-        const chartData: ChartData[] = [
-          { name: "Active Users", value: activeUsers, color: "#a78bfa" }, // Purple
-          { name: "Expired Accounts", value: expiredUsers, color: "#fcd34d" }, // Yellow
-        ];
-
-        setChartData(chartData);
+        setChartData(data?.data || []);
       } catch (err) {
         console.error("Error fetching user data:", err);
         setError(

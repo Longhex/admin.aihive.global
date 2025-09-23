@@ -7,6 +7,7 @@ import { SystemUserAddForm } from "@/components/system-user-add-form";
 import { Loading } from "@/components/loading";
 import { Input } from "@/components/ui/input";
 import type { SystemUser } from "@/types/api";
+import axios from "axios";
 
 export default function SystemUserPage() {
   const [users, setUsers] = useState<SystemUser[]>([]);
@@ -18,7 +19,8 @@ export default function SystemUserPage() {
   const [showAddUser, setShowAddUser] = useState(false);
   const [addUserError, setAddUserError] = useState<string | null>(null);
   const [addUserLoading, setAddUserLoading] = useState(false);
-
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const handleAddUser = async (form: {
     username: string;
     password: string;
@@ -77,12 +79,21 @@ export default function SystemUserPage() {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/system-users");
-        if (!res.ok) {
-          throw new Error(`API request failed with status ${res.status}`);
-        }
-        const data = await res.json();
-        setUsers(data.data);
+        const res = await axios.get("/api/system-users", {
+          params: {
+            page: currentPage,
+            pageSize: itemsPerPage,
+            username: debouncedQuery,
+          },
+        });
+        setUsers(res?.data?.data || []);
+        setTotalUsers(res?.data?.total);
+        // const res = await fetch("/api/system-users");
+        // if (!res.ok) {
+        //   throw new Error(`API request failed with status ${res.status}`);
+        // }
+        // const data = await res.json();
+        // setUsers(data.data);
       } catch (error) {
         setError(
           error instanceof Error ? error.message : "An unknown error occurred"
@@ -92,20 +103,27 @@ export default function SystemUserPage() {
       }
     };
     fetchUsers();
-  }, []);
+  }, [itemsPerPage, currentPage, debouncedQuery]);
 
-  const filteredUsers = users.filter((user) =>
-    (user.username?.toLowerCase() ?? "").includes(searchQuery.toLowerCase())
-  );
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   const goToNextPage = () =>
     setCurrentPage((page) => Math.min(page + 1, totalPages));
   const goToPreviousPage = () =>
     setCurrentPage((page) => Math.max(page - 1, 1));
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setCurrentPage(1);
+      setDebouncedQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler); // hủy timeout cũ trước khi set cái mới
+    };
+  }, [searchQuery]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -149,7 +167,7 @@ export default function SystemUserPage() {
       ) : (
         <div>
           <div className="flex flex-col gap-4">
-            {currentUsers.map((user: SystemUser) => (
+            {users.map((user: SystemUser) => (
               <SystemUserListItem
                 key={user.id}
                 user={user}
@@ -197,9 +215,8 @@ export default function SystemUserPage() {
               </div>
             </div>
             <p className="text-sm text-gray-500">
-              Showing {startIndex + 1}-
-              {Math.min(endIndex, filteredUsers.length)} of{" "}
-              {filteredUsers.length} users
+              Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of{" "}
+              {totalUsers} users
             </p>
             <div className="flex items-center space-x-2">
               <button

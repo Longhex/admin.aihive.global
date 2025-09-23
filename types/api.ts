@@ -28,3 +28,8 @@ export interface ApiResponse {
   status: number;
   message: string;
 }
+
+export interface QueryPagination {
+  page: number;
+  pageSize: number;
+}

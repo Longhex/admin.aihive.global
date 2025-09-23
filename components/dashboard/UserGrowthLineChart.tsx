@@ -1,90 +1,86 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowUpRight } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowUpRight } from "lucide-react";
+import axios from "axios";
 
 interface UserData {
-  id: string
-  created_at: string
+  id: string;
+  created_at: string;
   // ... other fields
 }
 
 interface ChartData {
-  date: string
-  totalUsers: number
+  date: string;
+  totalUsers: number;
 }
 
 export function UserGrowthLineChart() {
-  const [chartData, setChartData] = useState<ChartData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedYear, setSelectedYear] = useState("2025")
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState("2025");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        const response = await fetch("/api/users")
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`)
-        }
-        const data = await response.json()
+        setLoading(true);
+        const res = await axios("/api/users/stats/growth?year=" + selectedYear);
+
+        const data = res.data;
         if (!Array.isArray(data.data)) {
-          throw new Error("Invalid data format received from API")
+          throw new Error("Invalid data format received from API");
         }
-        const users: UserData[] = data.data
 
-        // Sort users by creation date
-        users.sort((a, b) => Number.parseInt(a.created_at) - Number.parseInt(b.created_at))
-
-        const userGrowth: { [key: string]: number } = {}
-        let totalUsers = 0
-
-        users.forEach((user) => {
-          const date = new Date(Number.parseInt(user.created_at) * 1000)
-          const year = date.getFullYear().toString()
-          const month = (date.getMonth() + 1).toString().padStart(2, "0")
-          const key = `${year}-${month}`
-
-          totalUsers++
-          userGrowth[key] = totalUsers
-        })
-
-        const chartData: ChartData[] = Object.entries(userGrowth)
-          .filter(([date]) => date.startsWith(selectedYear))
-          .map(([date, totalUsers]) => ({ date, totalUsers }))
-
-        setChartData(chartData)
+        setChartData(data?.data || []);
       } catch (err) {
-        console.error("Error fetching user data:", err)
-        setError(err instanceof Error ? err.message : "An unknown error occurred")
+        console.error("Error fetching user data:", err);
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
 
         // Create fallback data
         const fallbackData: ChartData[] = Array.from({ length: 12 }, (_, i) => {
-          const month = (i + 1).toString().padStart(2, "0")
+          const month = (i + 1).toString().padStart(2, "0");
           return {
             date: `${selectedYear}-${month}`,
             totalUsers: 10 + Math.floor(Math.random() * 5) * (i + 1),
-          }
-        })
-        setChartData(fallbackData)
+          };
+        });
+        setChartData(fallbackData);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [selectedYear])
+    fetchData();
+  }, [selectedYear]);
 
   return (
     <Card className="bg-gray-900 border-gray-800 rounded-xl overflow-hidden">
       <CardHeader className="border-b border-gray-800 p-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <CardTitle className="text-base font-normal text-white">User Growth Trend</CardTitle>
+            <CardTitle className="text-base font-normal text-white">
+              User Growth Trend
+            </CardTitle>
             <div className="ml-3 flex items-center text-xs font-medium rounded-full px-2 py-1 bg-green-900/50 text-green-400">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +3.2%
@@ -96,7 +92,11 @@ export function UserGrowthLineChart() {
             </SelectTrigger>
             <SelectContent className="bg-gray-800 text-white border-gray-700">
               {["2024", "2025", "2026"].map((year) => (
-                <SelectItem key={year} value={year} className="hover:bg-gray-700">
+                <SelectItem
+                  key={year}
+                  value={year}
+                  className="hover:bg-gray-700"
+                >
                   {year}
                 </SelectItem>
               ))}
@@ -118,7 +118,10 @@ export function UserGrowthLineChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
               <XAxis
                 dataKey="date"
                 stroke="#6b7280"
@@ -151,5 +154,5 @@ export function UserGrowthLineChart() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

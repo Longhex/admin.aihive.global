@@ -1,18 +1,8 @@
-import { NextResponse } from "next/server";
+import { isSuperAdmin } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
-import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
-
-async function isSuperAdmin() {
-  // cookies() can be used directly as a function in app router API routes
-  const cookieStore = await cookies();
-  const userIdCookie = cookieStore.get("systemUserId");
-  const userId = userIdCookie?.value;
-  if (!userId) return false;
-  const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
-  return user?.role === "SuperAdmin";
-}
 
 export async function POST(
   req: Request,

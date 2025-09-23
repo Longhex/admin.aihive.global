@@ -1,27 +1,46 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { PrismaClient, Role } from "@prisma/client";
+import { isSuperAdmin } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-async function isSuperAdmin() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("systemUserId")?.value;
-  if (!userId) return false;
-  const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
-  return user?.role === "SuperAdmin";
-}
-
-export async function GET() {
+export async function GET(_req: Request) {
   if (!(await isSuperAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  const { searchParams } = new URL(_req.url);
   try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json({ data: users });
+    const username = searchParams.get("username");
+    const page = +(searchParams.get("page") || "1");
+    const pageSize = +(searchParams.get("pageSize") || "1");
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        where: {
+          username: username
+            ? {
+                contains: username,
+                mode: "insensitive",
+              }
+            : undefined,
+        },
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+      }),
+      prisma.user.count({
+        where: {
+          username: username
+            ? {
+                contains: username,
+                mode: "insensitive",
+              }
+            : undefined,
+        },
+      }),
+    ]);
+    return NextResponse.json({ data: users, total });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : String(error) },

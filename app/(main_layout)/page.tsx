@@ -2,10 +2,7 @@
 
 import { DailyUserRegistrationChart } from "@/components/dashboard/DailyUserRegistrationChart";
 import { ExpiredAccountsModule } from "@/components/dashboard/ExpiredAccountsModule";
-import {
-  ExpiringAccountsTable,
-  getTotalExpiringAccounts,
-} from "@/components/dashboard/ExpiringAccountsTable";
+import { ExpiringAccountsTable } from "@/components/dashboard/ExpiringAccountsTable";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { TodaysNewUsers } from "@/components/dashboard/TodaysNewUsers";
 import { UserCreationYearlyChart } from "@/components/dashboard/UserCreationYearlyChart";
@@ -13,10 +10,9 @@ import { UserGrowthLineChart } from "@/components/dashboard/UserGrowthLineChart"
 import { UserStatusDonutChart } from "@/components/dashboard/UserStatusDonutChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { isBefore, parseISO } from "date-fns";
 import { AlertCircle, ArrowUpRight, UserCheck, UserX } from "lucide-react";
 import { useEffect, useState } from "react";
-
+import axios from "axios";
 // Register the loading animation
 // Remove this import: import { bouncy } from "ldrs"
 
@@ -36,50 +32,25 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/users");
-
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(
-            `API request failed with status ${res.status}: ${errorText}`
-          );
-        }
-
-        const data = await res.json();
-
-        if (!data || !Array.isArray(data.data)) {
-          throw new Error("Invalid data format received from API");
-        }
+        const res = await axios.get("/api/users/sumary");
 
         // Check if we're using fallback data
-        if (data.message && data.message.includes("fallback")) {
-          setUsingFallbackData(true);
-        }
+        // if (data.message && data.message.includes("fallback")) {
+        //   setUsingFallbackData(true);
+        // }
 
-        const users = data.data;
-        setTotalUsers(users.length);
+        const data = res.data;
 
-        // Calculate expired accounts (users with end_date < current date)
-        const currentDate = new Date();
-        const expiredAccountsCount = users.filter((user: any) => {
-          if (!user.end_date) return false;
-          try {
-            const endDate = parseISO(user.end_date);
-            return isBefore(endDate, currentDate);
-          } catch (err) {
-            console.warn("Error parsing end date:", err);
-            return false;
-          }
-        }).length;
+        setTotalUsers(data.total);
 
-        setExpiredAccounts(expiredAccountsCount);
+        setExpiredAccounts(data.expiredAccountsCount);
 
         // Calculate active users as total users minus expired accounts
-        setActiveUsers(users.length - expiredAccountsCount);
+        setActiveUsers(data.total - data.expiredAccountsCount);
 
         // Calculate expiring accounts this month
-        const total = getTotalExpiringAccounts(users);
-        setTotalExpiringAccounts(total);
+        // const total = getTotalExpiringAccounts(users);
+        setTotalExpiringAccounts(data.totalExpiringAccounts);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError(

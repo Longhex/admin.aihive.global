@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { UserListItem } from "@/components/user-list-item";
 import type { User } from "@/types/api";
+import axios from "axios";
 import saveAs from "file-saver";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -30,6 +31,10 @@ export default function HomePage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
+  const [total, setTotal] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setCurrentUserRole(localStorage.getItem("systemUserRole") || "");
@@ -37,15 +42,32 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setCurrentPage(1);
+      setDebouncedQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler); // hủy timeout cũ trước khi set cái mới
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/users");
-        if (!res.ok) {
-          throw new Error(`API request failed with status ${res.status}`);
-        }
-        const data = await res.json();
-        setUsers(data.data);
+        const res = await axios("/api/users", {
+          params: {
+            pageSize: itemsPerPage,
+            page: currentPage,
+            search: debouncedQuery,
+            sortOption,
+            sortDirection,
+          },
+        });
+
+        setUsers(res?.data?.data || []);
+        setTotal(res?.data?.total);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError(
@@ -57,31 +79,11 @@ export default function HomePage() {
     };
 
     fetchUsers();
-  }, []);
+  }, [debouncedQuery, itemsPerPage, currentPage, sortOption, sortDirection]);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (sortOption === "name") {
-      return sortDirection === "asc"
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name);
-    } else {
-      return sortDirection === "asc"
-        ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        : new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
-  });
-
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(total / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, endIndex);
 
   const goToNextPage = () => {
     setCurrentPage((page) => Math.min(page + 1, totalPages));
@@ -92,6 +94,7 @@ export default function HomePage() {
   };
 
   const handleSort = (option: SortOption) => {
+    setCurrentPage(1);
     if (option === sortOption) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -100,7 +103,8 @@ export default function HomePage() {
     }
   };
 
-  const exportToCSV = () => {
+  const exportToCSV = async () => {
+    setIsDownloading(true);
     const headers = [
       "Name",
       "Email",
@@ -113,22 +117,40 @@ export default function HomePage() {
       "End Date",
       "Created At",
     ];
-    const csvContent = [
-      headers.join(","),
-      ...sortedUsers.map(
-        (user) =>
-          `${user.name},${user.email},${user.phone_number || "N/A"},${
-            user.role
-          },${user.language || ""},${user.theme || ""},${
-            user.last_login || ""
-          },${user.last_login_ip || ""},${user.end_date || ""},${
-            user.created_at || ""
-          }`
-      ),
-    ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "user_list.csv");
+    try {
+      const res = await axios("/api/users", {
+        params: {
+          pageSize: 10000000,
+          page: currentPage,
+          search: debouncedQuery,
+          sortOption,
+          sortDirection,
+        },
+      });
+
+      const users: User[] = res?.data?.data || [];
+      const csvContent = [
+        headers.join(","),
+        ...users.map(
+          (user) =>
+            `${user.name},${user.email},${user.phone_number || "N/A"},${
+              user.role
+            },${user.language || ""},${user.theme || ""},${
+              user.last_login || ""
+            },${user.last_login_ip || ""},${user.end_date || ""},${
+              user.created_at || ""
+            }`
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, "user_list.csv");
+      setIsDownloading(false);
+    } catch (error) {
+      setIsDownloading(false);
+      throw error;
+    }
   };
 
   return (
@@ -136,9 +158,9 @@ export default function HomePage() {
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">User List</h2>
-          <p className="text-muted-foreground">Total users: {users.length}</p>
+          <p className="text-muted-foreground">Total users: {total}</p>
           <p className="text-muted-foreground">
-            View and manage user accounts • Total users: {users.length}
+            View and manage user accounts • Total users: {total}
           </p>
         </div>
         <div className="flex justify-between items-center">
@@ -150,6 +172,7 @@ export default function HomePage() {
               className="max-w-sm bg-white text-gray-800 placeholder-gray-500 border-gray-300"
             />
             <Button
+              isLoading={isDownloading}
               onClick={exportToCSV}
               className="bg-indigo-600 text-white hover:bg-indigo-700"
             >
@@ -196,7 +219,7 @@ export default function HomePage() {
         ) : (
           <>
             <div>
-              {currentUsers.map((user) => (
+              {users.map((user) => (
                 <UserListItem
                   currentUserRole={currentUserRole}
                   key={`${user.id}-${currentPage}`}
@@ -243,9 +266,8 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-sm text-gray-500">
-                Showing {startIndex + 1}-
-                {Math.min(endIndex, filteredUsers.length)} of{" "}
-                {filteredUsers.length} users
+                Showing {startIndex + 1}-{Math.min(endIndex, total)} of {total}{" "}
+                users
               </p>
               <div className="flex items-center space-x-2">
                 <button

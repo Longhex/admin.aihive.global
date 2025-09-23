@@ -6,9 +6,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding database...");
   const hashedPassword = await bcrypt.hash("@Ht12345", 10);
+  await prisma.user.deleteMany({
+    where: {
+      username: "superadmin",
+    },
+  });
+
   await prisma.user.create({
     data: {
-      username: "supperadmin",
+      username: "superadmin",
       password: hashedPassword,
       role: Role.SuperAdmin,
     },

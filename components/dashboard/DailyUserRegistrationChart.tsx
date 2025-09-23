@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import axios from "axios";
 
 interface UserData {
   id: string;
@@ -61,73 +62,15 @@ export function DailyUserRegistrationChart() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("/api/users", {
-          method: "GET",
+        const res = await axios.get("/api/users/stats/daily-registration", {
+          params: { year: selectedYear, month: selectedMonth },
         });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `API request failed with status ${response.status}: ${errorText}`
-          );
-        }
-
-        const data = await response.json();
-
+        const data = res.data;
         if (!data || !Array.isArray(data.data)) {
           throw new Error("Invalid data format received from API");
         }
 
-        const users: UserData[] = data.data;
-
-        const filteredUsers = users.filter((user) => {
-          try {
-            const timestamp = Number.parseInt(user.created_at);
-            if (isNaN(timestamp)) {
-              console.warn("Invalid timestamp:", user.created_at);
-              return false;
-            }
-
-            const date = new Date(timestamp * 1000);
-            return (
-              date.getFullYear().toString() === selectedYear &&
-              date.getMonth().toString() === selectedMonth
-            );
-          } catch (err) {
-            console.warn("Error parsing date:", err);
-            return false;
-          }
-        });
-
-        const usersByDay: { [key: string]: number } = {};
-
-        filteredUsers.forEach((user) => {
-          try {
-            const timestamp = Number.parseInt(user.created_at);
-            if (isNaN(timestamp)) return;
-
-            const date = new Date(timestamp * 1000);
-            const day = date.getDate().toString().padStart(2, "0");
-            usersByDay[day] = (usersByDay[day] || 0) + 1;
-          } catch (err) {
-            console.warn("Error processing user:", err);
-          }
-        });
-
-        const daysInMonth = new Date(
-          Number.parseInt(selectedYear),
-          Number.parseInt(selectedMonth) + 1,
-          0
-        ).getDate();
-        const chartData: ChartData[] = Array.from(
-          { length: daysInMonth },
-          (_, i) => {
-            const day = (i + 1).toString().padStart(2, "0");
-            return { day, count: usersByDay[day] || 0 };
-          }
-        );
-
-        setChartData(chartData);
+        setChartData(data?.data || []);
       } catch (err) {
         console.error("Error fetching user data:", err);
         setError(

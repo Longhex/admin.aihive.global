@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST() {
   // Xóa cookie xác thực phía server (httpOnly)
   const response = NextResponse.json({ message: "Logged out" });
-  response.cookies.set("systemUserAuth", "", {
+  response.cookies.set("authToken", "", {
     httpOnly: true,
     sameSite: "strict",
     path: "/",

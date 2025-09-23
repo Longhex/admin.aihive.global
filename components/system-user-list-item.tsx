@@ -44,15 +44,17 @@ export function SystemUserListItem({
         </div>
       </div>
       <div className="flex justify-end">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="focus:ring-0"
-          onClick={() => setIsDetailsOpen(true)}
-        >
-          <MoreHorizontal className="h-5 w-5" />
-          <span className="sr-only">View user details</span>
-        </Button>
+        {user.role !== "SuperAdmin" && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="focus:ring-0"
+            onClick={() => setIsDetailsOpen(true)}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="sr-only">View user details</span>
+          </Button>
+        )}
       </div>
       <SystemUserDetailsDialog
         user={user}
