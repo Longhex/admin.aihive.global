@@ -76,10 +76,10 @@ export function UserCreationYearlyChart() {
             <CardTitle className="text-base font-normal text-white">
               User Creation by Month
             </CardTitle>
-            <div className="ml-3 flex items-center text-xs font-medium rounded-full px-2 py-1 bg-green-900/50 text-green-400">
+            {/* <div className="ml-3 flex items-center text-xs font-medium rounded-full px-2 py-1 bg-green-900/50 text-green-400">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +4.7%
-            </div>
+            </div> */}
           </div>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[120px] bg-gray-800 text-white border-gray-700">

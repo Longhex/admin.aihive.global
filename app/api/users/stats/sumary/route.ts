@@ -1,5 +1,9 @@
 import { isAuthenticated } from "@/lib/auth";
-import { getExpiredAccountsCount, getTotalExpiringAccounts } from "@/lib/utils";
+import {
+  calculateYearlyGrowth,
+  getExpiredAccountsCount,
+  getTotalExpiringAccounts,
+} from "@/lib/utils";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -21,6 +25,7 @@ export async function GET(_req: Request) {
 
       return NextResponse.json({
         total: (cacheData?.data as any)?.length || 0,
+        yearlyGrowth: calculateYearlyGrowth((cacheData?.data as any) || []),
         expiredAccountsCount,
         totalExpiringAccounts,
       });

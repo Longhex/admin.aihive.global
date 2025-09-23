@@ -10,9 +10,16 @@ import { UserGrowthLineChart } from "@/components/dashboard/UserGrowthLineChart"
 import { UserStatusDonutChart } from "@/components/dashboard/UserStatusDonutChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, ArrowUpRight, UserCheck, UserX } from "lucide-react";
-import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import axios from "axios";
+import {
+  AlertCircle,
+  ArrowDownRight,
+  ArrowUpRight,
+  UserCheck,
+  UserX,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 // Register the loading animation
 // Remove this import: import { bouncy } from "ldrs"
 
@@ -24,7 +31,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [yearlyGrowth, setYearlyGrowth] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -32,7 +39,7 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get("/api/users/sumary");
+        const res = await axios.get("/api/users/stats/sumary");
 
         // Check if we're using fallback data
         // if (data.message && data.message.includes("fallback")) {
@@ -50,6 +57,7 @@ export default function HomePage() {
 
         // Calculate expiring accounts this month
         // const total = getTotalExpiringAccounts(users);
+        setYearlyGrowth(data.yearlyGrowth);
         setTotalExpiringAccounts(data.totalExpiringAccounts);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -105,9 +113,21 @@ export default function HomePage() {
                   <div className="text-4xl font-bold text-white">
                     {totalUsers || 0}
                   </div>
-                  <div className="flex items-center text-xs font-medium rounded-full px-2 py-1 bg-green-900/50 text-green-400">
-                    <ArrowUpRight className="h-3 w-3 mr-1" />
-                    +2.4%
+                  <div
+                    className={cn(
+                      "flex items-center text-xs font-medium rounded-full px-2 py-1 ",
+                      yearlyGrowth && yearlyGrowth > 0
+                        ? "bg-green-900/50 text-green-400"
+                        : "bg-red-900/50 text-red-400"
+                    )}
+                  >
+                    {yearlyGrowth && yearlyGrowth > 0 ? (
+                      <ArrowUpRight className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowDownRight className="h-3 w-3 mr-1" />
+                    )}
+                    {yearlyGrowth && yearlyGrowth > 0 && "+"}
+                    {yearlyGrowth}%
                   </div>
                 </div>
                 <div className="text-sm text-gray-400 mt-1">Total users</div>
@@ -120,7 +140,7 @@ export default function HomePage() {
             value={activeUsers !== null ? activeUsers.toString() : "Loading..."}
             icon={<UserCheck className="h-4 w-4" />}
             description="Total active users"
-            change="+1.1%"
+            // change="+1.1%"
             isLoading={loading}
           />
 
@@ -133,7 +153,7 @@ export default function HomePage() {
             }
             icon={<UserX className="h-4 w-4" />}
             description="Users with end date in the past"
-            change="-0.8%"
+            // change="-0.8%"
             isLoading={loading}
           />
 
@@ -146,7 +166,7 @@ export default function HomePage() {
             }
             icon={<AlertCircle className="h-4 w-4" />}
             description="Accounts expiring soon"
-            change="+0.5%"
+            // change="+0.5%"
             isLoading={loading}
           />
         </div>
