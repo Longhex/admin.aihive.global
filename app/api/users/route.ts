@@ -1,4 +1,5 @@
 import { isAuthenticated } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import { getPaginatedData } from "@/lib/utils";
 import { User } from "@/types/api";
 import { PrismaClient } from "@prisma/client";
@@ -16,7 +17,7 @@ export async function GET(_req: Request) {
 
   try {
     console.log("Fetching users from API...");
-    const cacheData = await prisma.cacheData.findFirst();
+    const cacheData = await getCacheData();
 
     try {
       const filteredData = filterData(cacheData?.data as any, {

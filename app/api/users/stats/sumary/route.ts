@@ -1,4 +1,5 @@
 import { isAuthenticated } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import {
   calculateYearlyGrowth,
   getExpiredAccountsCount,
@@ -14,7 +15,7 @@ export async function GET(_req: Request) {
   }
 
   try {
-    const cacheData = await prisma.cacheData.findFirst();
+    const cacheData = await getCacheData();
     try {
       const expiredAccountsCount = getExpiredAccountsCount(
         (cacheData?.data as []) || null

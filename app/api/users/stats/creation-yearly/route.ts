@@ -1,5 +1,6 @@
 import { monthNames } from "@/constants/date";
 import { isAuthenticated } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -14,7 +15,7 @@ export async function GET(_req: Request) {
   const selectedYear =
     searchParams.get("year") || new Date().getFullYear().toString();
   try {
-    const cacheData = await prisma.cacheData.findFirst();
+    const cacheData = await getCacheData();
     try {
       const users = (cacheData?.data as any[]) || [];
       const usersByMonth: { [key: string]: number } = {};

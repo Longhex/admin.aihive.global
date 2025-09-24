@@ -1,4 +1,5 @@
 import { isAuthenticated } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import { PrismaClient } from "@prisma/client";
 import { isBefore, parseISO } from "date-fns";
 import { NextResponse } from "next/server";
@@ -11,7 +12,7 @@ export async function GET(_req: Request) {
   }
 
   try {
-    const cacheData = await prisma.cacheData.findFirst();
+    const cacheData = await getCacheData();
     try {
       const users = (cacheData?.data as any[]) || [];
 

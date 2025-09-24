@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 
+interface User {
+  username: string;
+  role: string;
+}
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  me: null | User;
 }
 
 // Create a default context value
@@ -16,12 +21,14 @@ const defaultAuthContext: AuthContextType = {
   isAuthenticated: false,
   login: async () => false,
   logout: () => {},
+  me: null,
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [me, setMe] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const res = await axios.get("/api/auth/me");
         setIsAuthenticated(true);
+        setMe(res?.data?.data);
         localStorage.setItem("systemUserRole", res?.data?.role || "");
         localStorage.setItem("systemUserName", res?.data?.username || "");
       } catch (error) {
@@ -77,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, me }}>
       {children}
     </AuthContext.Provider>
   );

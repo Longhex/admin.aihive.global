@@ -1,3 +1,4 @@
+import { hasElapsedMinutes } from "@/lib/utils";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
@@ -14,6 +15,14 @@ export async function GET() {
   }
 
   try {
+    if (
+      (global as any).cache_data &&
+      !hasElapsedMinutes((global as any).cache_data.last_update, 5)
+    ) {
+      console.log("SYNC DATA: REUSE");
+      return NextResponse.json({ success: true });
+    }
+
     const res = await fetch(
       "https://cloud.oriagent.com/console/api/account/admin",
       {
@@ -26,8 +35,6 @@ export async function GET() {
       }
     );
 
-    console.log("API response status:", res.status);
-
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`API responded with status ${res.status}: ${errorText}`);
@@ -36,6 +43,7 @@ export async function GET() {
       );
     }
     const data = await res.json();
+    (global as any).cache_data = { data, last_update: new Date() };
 
     await prisma.cacheData.upsert({
       where: { id: 1 },

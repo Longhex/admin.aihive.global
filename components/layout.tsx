@@ -11,28 +11,22 @@ import { usePathname } from "next/navigation";
 import { EditSettingDialog } from "./edit-setting-dialog";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { logout } = useAuth();
+  const { logout, me } = useAuth();
   const pathname = usePathname();
   const auth = useAuth();
   const authReady = !!auth;
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
   const [isOpenSettingDialog, setIsOpenSettingDialog] = useState(false);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cookies = document.cookie.split(";").map((c) => c.trim());
       const roleCookie = cookies.find((c) => c.startsWith("systemUserRole="));
       if (roleCookie) {
-        setUserRole(decodeURIComponent(roleCookie.split("=")[1]));
       } else {
         // Nếu chưa có cookie, thử lấy từ localStorage (dự phòng)
         const localRole = localStorage.getItem("systemUserRole");
-        if (localRole) setUserRole(localRole);
       }
       // Get username from localStorage
       const localUsername = localStorage.getItem("systemUserName");
-      if (localUsername) setUsername(localUsername);
     }
   }, []);
 
@@ -44,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center">
               {/* Updated to use the white logo */}
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logowhite-za3MHloNLQsaQHuB3FaTuyq9cQcOuL.png"
+                src="ai-hive-logo.svg"
                 alt="Oriagent"
                 width={140}
                 height={40}
@@ -74,7 +68,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   User List
                 </Link>
                 {/* Only show System User tab for SuperAdmin */}
-                {userRole === "SuperAdmin" && (
+                {me?.role === "SuperAdmin" && (
                   <Link
                     href="/system-user"
                     className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
@@ -91,7 +85,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <div>
-              {userRole === "SuperAdmin" && (
+              {me?.role === "SuperAdmin" && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -111,7 +105,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
             <div className="flex items-center gap-2 bg-gray-900 rounded-full p-1 pl-3">
-              <span className="text-sm text-gray-300">{username || "-"}</span>
+              <span className="text-sm text-gray-300">
+                {me?.username || "-"}
+              </span>
               <Button
                 variant="ghost"
                 size="icon"

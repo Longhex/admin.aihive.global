@@ -103,3 +103,14 @@ export function getExpiredAccountsCount(users: User[]): number {
     }
   }).length;
 }
+
+export function hasElapsedMinutes(
+  lastUpdate: Date | string,
+  minutes: number
+): boolean {
+  const last = new Date(lastUpdate); // hỗ trợ Date hoặc string ISO
+  const now = new Date();
+  const diffMs = now.getTime() - last.getTime(); // lấy milliseconds
+  const diffMinutes = diffMs / (1000 * 60);
+  return diffMinutes > minutes;
+}
