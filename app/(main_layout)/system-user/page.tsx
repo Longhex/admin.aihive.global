@@ -136,7 +136,7 @@ export default function SystemUserPage() {
           className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition"
           onClick={() => setShowAddUser(true)}
         >
-          + Add System User
+          + Add <span className="max-sm:hidden">System User</span>
         </button>
       </div>
       {showAddUser && (
@@ -180,7 +180,7 @@ export default function SystemUserPage() {
             <div className="flex items-center space-x-2">
               <label
                 htmlFor="page-size"
-                className="text-sm text-gray-500 font-medium mr-1"
+                className="text-sm text-gray-500 font-medium mr-1 max-md:hidden"
               >
                 Rows per page:
               </label>
@@ -214,7 +214,7 @@ export default function SystemUserPage() {
                 </span>
               </div>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 max-md:hidden">
               Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of{" "}
               {totalUsers} users
             </p>

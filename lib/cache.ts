@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export async function getCacheData(force?: boolean) {
-  console.log({ force });
   if (!(global as any).cache_data) {
     await axios(`${process.env.BASE_URL}/api/sync-data`, {
       params: {

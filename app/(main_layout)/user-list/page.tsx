@@ -163,7 +163,7 @@ export default function HomePage() {
             View and manage user accounts • Total users: {total}
           </p>
         </div>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Input
               placeholder="Search users by name, email, or role..."
@@ -231,7 +231,7 @@ export default function HomePage() {
               <div className="flex items-center space-x-2">
                 <label
                   htmlFor="page-size"
-                  className="text-sm text-gray-500 font-medium mr-1"
+                  className="text-sm text-gray-500 font-medium mr-1 max-md:hidden"
                 >
                   Rows per page:
                 </label>
@@ -265,7 +265,7 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 max-sm:hidden">
                 Showing {startIndex + 1}-{Math.min(endIndex, total)} of {total}{" "}
                 users
               </p>

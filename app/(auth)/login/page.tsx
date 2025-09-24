@@ -127,7 +127,7 @@ export default function LoginPage() {
                 <Input
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => setUsername(e.target.value?.trim())}
                   className="w-full bg-gray-800 text-white border-gray-700"
                   placeholder="Nhập tên đăng nhập được cấp cho bạn"
                   required
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value?.trim())}
                     className="w-full pr-10 bg-gray-800 text-white border-gray-700"
                     placeholder="Nhập mật khẩu được cấp cho bạn"
                     required
