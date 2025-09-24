@@ -95,16 +95,14 @@ export default function LoginPage() {
           <div className="max-w-md w-full bg-gray-900 p-8 rounded-[20px] shadow-lg border border-gray-800">
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-2">
-                <Link href="/">
-                  {/* Updated to use the white logo */}
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logowhite-za3MHloNLQsaQHuB3FaTuyq9cQcOuL.png"
-                    alt="Oriagent"
-                    width={160}
-                    height={50}
-                    className="h-12 w-auto"
-                  />
-                </Link>
+                {/* Updated to use the white logo */}
+                <Image
+                  src="ai-hive-logo.svg"
+                  alt="Oriagent"
+                  width={160}
+                  height={50}
+                  className="h-12 w-auto"
+                />
               </div>
               <Button
                 variant="ghost"
