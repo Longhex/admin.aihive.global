@@ -1,10 +1,19 @@
 import axios from "axios";
 
-export async function getCacheData() {
+export async function getCacheData(force?: boolean) {
+  console.log({ force });
   if (!(global as any).cache_data) {
-    await axios(`${process.env.BASE_URL}/api/sync-data`);
+    await axios(`${process.env.BASE_URL}/api/sync-data`, {
+      params: {
+        force,
+      },
+    });
   } else {
-    axios(`${process.env.BASE_URL}/api/sync-data`).catch((err) => {
+    axios(`${process.env.BASE_URL}/api/sync-data`, {
+      params: {
+        force,
+      },
+    }).catch((err) => {
       console.error(err);
     });
   }

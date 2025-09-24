@@ -1,13 +1,13 @@
 import { isSuperAdmin } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function POST(
-  req: Request,
-  { params }: { params: { user_id: string } }
-) {
+export async function POST(req: Request) {
+  const body = await req.json();
   if (!(await isSuperAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -28,11 +28,14 @@ export async function POST(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(params),
+        body: JSON.stringify(body),
       }
     );
 
-    return NextResponse.json({ data: await response.json() });
+    await getCacheData(true);
+
+    const data = await response.json();
+    return NextResponse.json({ data });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : String(error) },

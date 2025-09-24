@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(_req: Request) {
   const setting = await prisma.setting.findFirst();
-
+  const { searchParams } = new URL(_req.url);
   const token = setting?.oriagentToken;
   if (!token) {
     return NextResponse.json(
@@ -13,13 +13,16 @@ export async function GET() {
       { status: 500 }
     );
   }
-  if (!(global as any).sync_data) {
+
+  const force = searchParams.get("force") || false;
+  if (!force && !(global as any).sync_data) {
     (global as any).sync_data = true;
   } else {
     return NextResponse.json({ success: true });
   }
   try {
     if (
+      !force &&
       (global as any).cache_data &&
       !hasElapsedMinutes((global as any).cache_data.last_update, 5)
     ) {
