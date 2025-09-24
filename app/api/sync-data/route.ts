@@ -13,13 +13,16 @@ export async function GET() {
       { status: 500 }
     );
   }
-
+  if (!(global as any).sync_data) {
+    (global as any).sync_data = true;
+  } else {
+    return NextResponse.json({ success: true });
+  }
   try {
     if (
       (global as any).cache_data &&
       !hasElapsedMinutes((global as any).cache_data.last_update, 5)
     ) {
-      console.log("SYNC DATA: REUSE");
       return NextResponse.json({ success: true });
     }
 
@@ -37,7 +40,6 @@ export async function GET() {
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(`API responded with status ${res.status}: ${errorText}`);
       throw new Error(
         `API request failed with status ${res.status}: ${errorText}`
       );
@@ -60,11 +62,13 @@ export async function GET() {
 
     // TODO: Lưu data vào DB hoặc KV
   } catch (error) {
+    (global as any).sync_data = false;
     console.error("Error fetching data from Oriagent API:", error);
     return NextResponse.json(
       { error: "Failed to fetch data from Oriagent API" },
       { status: 500 }
     );
   }
+  (global as any).sync_data = false;
   return NextResponse.json({ success: true });
 }
