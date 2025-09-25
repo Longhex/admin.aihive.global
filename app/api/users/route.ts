@@ -4,7 +4,6 @@ import { getPaginatedData } from "@/lib/utils";
 import { User } from "@/types/api";
 import { PrismaClient } from "@prisma/client";
 import { isBefore, isThisMonth, parseISO } from "date-fns";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();

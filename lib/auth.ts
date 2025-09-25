@@ -1,4 +1,5 @@
 // lib/auth.ts
+import { Role } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
@@ -21,6 +22,16 @@ export async function isSuperAdmin() {
     const decoded: any = await verifyToken();
 
     return decoded?.role === "SuperAdmin";
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function isAdmin() {
+  try {
+    const decoded: any = await verifyToken();
+
+    return decoded?.role === Role.Admin;
   } catch (error) {
     return false;
   }

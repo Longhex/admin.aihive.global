@@ -1,14 +1,14 @@
-import { isSuperAdmin } from "@/lib/auth";
+import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { getCacheData } from "@/lib/cache";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function POST(
-  req: Request,
-  { params }: { params: { user_id: string; days: number; openai_key: string } }
-) {
-  if (!(await isSuperAdmin())) {
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  if (!(await isAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
@@ -20,6 +20,7 @@ export async function POST(
         { status: 500 }
       );
     }
+
     const response = await fetch(
       "https://cloud.oriagent.com/console/api/account/extend",
       {
@@ -28,9 +29,11 @@ export async function POST(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(params),
+        body: JSON.stringify(body),
       }
     );
+
+    await getCacheData(true);
 
     return NextResponse.json({ data: await response.json() });
   } catch (error) {

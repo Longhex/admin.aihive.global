@@ -1,14 +1,14 @@
-import { isSuperAdmin } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 export async function POST(
-  req: Request,
-  { params }: { params: { user_id: string } }
+  req: Request
+  // { params }: { params: { user_id: string } }
 ) {
-  if (!(await isSuperAdmin())) {
+  if (!(await isAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {

@@ -1,4 +1,4 @@
-import { isSuperAdmin } from "@/lib/auth";
+import { isAdmin, isSuperAdmin } from "@/lib/auth";
 import { getCacheData } from "@/lib/cache";
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const body = await req.json();
-  if (!(await isSuperAdmin())) {
+  if (!(await isAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
