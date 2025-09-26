@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   me: null | User;
+  isChecking: boolean;
 }
 
 // Create a default context value
@@ -22,6 +23,7 @@ const defaultAuthContext: AuthContextType = {
   login: async () => false,
   logout: () => {},
   me: null,
+  isChecking: false,
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -30,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [me, setMe] = useState(null);
   const router = useRouter();
+
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const handle = async () => {
@@ -40,7 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("systemUserRole", res?.data?.role || "");
         localStorage.setItem("systemUserName", res?.data?.username || "");
       } catch (error) {
-        router.push("/login");
+        // router.push("/login");
+      } finally {
+        setIsChecking(false);
       }
     };
     handle();
@@ -60,16 +66,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
+      const resJson = await res.json();
       // Lưu role vào localStorage để client-side layout có thể đọc
       if (typeof window !== "undefined") {
-        const resJson = await res.json();
         localStorage.setItem("systemUserRole", resJson?.data?.role || "");
         localStorage.setItem("systemUserName", resJson?.data?.username || "");
       }
+      setMe(resJson);
       setIsAuthenticated(true);
-      setTimeout(() => {
-        router.push("/");
-      }, 100);
+      router.push("/");
+      // setTimeout(() => {
+      // }, 100);
       return true;
     } catch {
       return false;
@@ -85,7 +92,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, me }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, login, logout, me, isChecking }}
+    >
       {children}
     </AuthContext.Provider>
   );

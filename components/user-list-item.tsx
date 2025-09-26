@@ -8,6 +8,7 @@ import { MoreHorizontal } from "lucide-react";
 import { UserDetailsDialog } from "./user-details-dialog";
 import { formatDate } from "@/lib/utils";
 import { EditDateDialog } from "./edit-date-dialog";
+import { useAuth } from "@/contexts/auth-context";
 
 export function UserListItem({
   user,
@@ -18,7 +19,7 @@ export function UserListItem({
 }) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
-
+  const { me } = useAuth();
   const handleEditDate = () => setIsEditDateOpen(true);
 
   const handleDelete = async () => {
@@ -72,7 +73,7 @@ export function UserListItem({
           </div>
         </div>
         <div className="flex justify-end">
-          {currentUserRole !== "Viewer" && (
+          {me?.role !== "Viewer" && (
             <Button
               variant="ghost"
               size="icon"

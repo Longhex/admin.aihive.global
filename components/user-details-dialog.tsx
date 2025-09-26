@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import type { User } from "@/types/api";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import type { User } from "@/types/api";
 import { format, parseISO } from "date-fns";
 import { Calendar, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { EditDateDialog } from "./edit-date-dialog";
 
 interface UserDetailsDialogProps {

@@ -1,4 +1,5 @@
 import "@/app/globals.css";
+import AuthWrapper from "@/components/AuthWrapper";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import type React from "react";
