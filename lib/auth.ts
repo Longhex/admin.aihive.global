@@ -31,7 +31,7 @@ export async function isAdmin() {
   try {
     const decoded: any = await verifyToken();
 
-    return decoded?.role === Role.Admin;
+    return decoded?.role === Role.Admin || decoded?.role === Role.SuperAdmin;
   } catch (error) {
     return false;
   }

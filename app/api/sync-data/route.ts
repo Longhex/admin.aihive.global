@@ -15,7 +15,7 @@ export async function GET(_req: Request) {
   }
 
   const force = searchParams.get("force") || false;
-  if (!force && !(global as any).sync_data) {
+  if (force || !(global as any).sync_data) {
     (global as any).sync_data = true;
   } else {
     return NextResponse.json({ success: true });
