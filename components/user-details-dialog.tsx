@@ -13,6 +13,7 @@ import { format, parseISO } from "date-fns";
 import { Calendar, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { EditDateDialog } from "./edit-date-dialog";
+import { EditUserDialog } from "./edit-user-dialog";
 
 interface UserDetailsDialogProps {
   user: User;
@@ -25,11 +26,11 @@ export function UserDetailsDialog({
   isOpen,
   onClose,
 }: UserDetailsDialogProps) {
-  const [isEditDateOpen, setIsEditDateOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleEditDate = () => {
-    setIsEditDateOpen(true);
+  const handleEditUser = () => {
+    setIsEditUserOpen(true);
   };
 
   const handleDelete = async () => {
@@ -77,6 +78,34 @@ export function UserDetailsDialog({
               <span className="font-bold text-gray-300">Phone:</span>
               <span className="col-span-3 text-white">
                 {user.phone_number || "N/A"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="font-bold text-gray-300">Max apps:</span>
+              <span className="col-span-3 text-white">
+                {user.max_apps || "N/A"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="font-bold text-gray-300">Max tokens:</span>
+              <span className="col-span-3 text-white">
+                {user.max_tokens || "N/A"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="font-bold text-gray-300">
+                Max file datasets:
+              </span>
+              <span className="col-span-3 text-white">
+                {user.max_file_datasets || "N/A"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <span className="font-bold text-gray-300">
+                Subscription Plan:
+              </span>
+              <span className="col-span-3 text-white">
+                {user.subscription_plan || "N/A"}
               </span>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -132,11 +161,11 @@ export function UserDetailsDialog({
           <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={handleEditDate}
+                onClick={handleEditUser}
                 className="bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 <Calendar className="mr-2 h-4 w-4" />
-                Edit End Date
+                Edit User
               </Button>
               <Button
                 onClick={handleDelete}
@@ -144,7 +173,7 @@ export function UserDetailsDialog({
                 className="bg-red-600 text-white hover:bg-red-700"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                {isDeleting ? "Deleting..." : "Delete User"}
+                {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
             <Button
@@ -158,8 +187,9 @@ export function UserDetailsDialog({
         </DialogContent>
       </Dialog>
 
-      {isEditDateOpen && (
-        <EditDateDialog user={user} onClose={() => setIsEditDateOpen(false)} />
+      {isEditUserOpen && (
+        // <EditDateDialog user={user} onClose={() => setIsEditUserOpen(false)} />
+        <EditUserDialog user={user} onClose={() => setIsEditUserOpen(false)} />
       )}
     </>
   );

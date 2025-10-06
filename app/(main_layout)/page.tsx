@@ -148,7 +148,7 @@ export default function HomePage() {
             title="Expired Accounts"
             value={
               expiredAccounts !== null
-                ? expiredAccounts.toString()
+                ? expiredAccounts?.toString()
                 : "Loading..."
             }
             icon={<UserX className="h-4 w-4" />}
@@ -161,7 +161,7 @@ export default function HomePage() {
             title="Expiring This Month"
             value={
               totalExpiringAccounts !== null
-                ? totalExpiringAccounts.toString()
+                ? totalExpiringAccounts?.toString()
                 : "Loading..."
             }
             icon={<AlertCircle className="h-4 w-4" />}

@@ -7,6 +7,12 @@ export interface SystemUser {
   updatedAt: string;
 }
 
+export enum SubscriptionPlanEnum {
+  free,
+  basic,
+  pro,
+  enterprise,
+}
 export interface User {
   id: string;
   name: string;
@@ -21,6 +27,10 @@ export interface User {
   created_at: string;
   timezone: string;
   updated_at: string;
+  max_tokens: number;
+  max_apps: number;
+  max_file_datasets: number;
+  subscription_plan: SubscriptionPlanEnum;
 }
 
 export interface ApiResponse {
